@@ -419,7 +419,7 @@
     .target-number { font-size: 2.2rem; }
   }
 
-  /* Two-column layout */
+  /* Layout */
   #layout {
     display: flex;
     align-items: flex-start;
@@ -434,77 +434,6 @@
     flex: 1;
     min-width: 0;
     max-width: 760px;
-  }
-
-  /* Calculator */
-  #calc-panel {
-    width: 200px;
-    flex-shrink: 0;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius-lg);
-    padding: 1rem;
-    margin-top: 1.5rem;
-    margin-left: 1rem;
-    position: sticky;
-    top: 1rem;
-  }
-
-  #calc-display {
-    font-family: 'Space Mono', monospace;
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--text);
-    text-align: right;
-    padding: 8px 10px 2px;
-    min-height: 48px;
-    word-break: break-all;
-    line-height: 1.2;
-  }
-
-  #calc-expr {
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    text-align: right;
-    padding: 0 10px 8px;
-    min-height: 18px;
-    word-break: break-all;
-  }
-
-  #calc-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    margin-top: 4px;
-  }
-
-  .cb {
-    height: 42px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Space Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
-    border-radius: var(--radius);
-    border: 1px solid var(--border2);
-    background: var(--surface2);
-    color: var(--text);
-    cursor: pointer;
-    transition: all 0.1s;
-    user-select: none;
-  }
-  .cb:hover { background: var(--accent-dim); border-color: var(--accent); color: #c4b5fd; }
-  .cb:active { transform: scale(0.93); }
-  .cb.op { color: #a78bfa; border-color: rgba(167,139,250,0.3); }
-  .cb.op:hover { background: var(--accent-dim); }
-  .cb.eq { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .cb.eq:hover { background: #6b4de8; }
-  .cb.span2 { grid-column: span 2; }
-
-  @media (max-width: 820px) {
-    #layout { flex-direction: column; align-items: center; padding: 0; }
-    #calc-panel { width: 100%; max-width: 760px; margin-left: 0; margin-top: 0; position: static; }
-    main { max-width: 760px; width: 100%; }
   }
 </style>
 </head>
@@ -566,32 +495,6 @@
     <button class="action-btn danger" id="surrender-btn">⚑ Rendirse</button>
   </div>
 </main>
-
-<aside id="calc-panel">
-  <div class="card-label" style="text-align:center;margin-bottom:12px">Calculadora</div>
-  <div id="calc-display">0</div>
-  <div id="calc-expr"></div>
-  <div id="calc-grid">
-    <button class="cb span2" data-action="clear">C</button>
-    <button class="cb" data-action="backspace">⌫</button>
-    <button class="cb op" data-action="op" data-val="÷">÷</button>
-    <button class="cb" data-action="num" data-val="7">7</button>
-    <button class="cb" data-action="num" data-val="8">8</button>
-    <button class="cb" data-action="num" data-val="9">9</button>
-    <button class="cb op" data-action="op" data-val="×">×</button>
-    <button class="cb" data-action="num" data-val="4">4</button>
-    <button class="cb" data-action="num" data-val="5">5</button>
-    <button class="cb" data-action="num" data-val="6">6</button>
-    <button class="cb op" data-action="op" data-val="−">−</button>
-    <button class="cb" data-action="num" data-val="1">1</button>
-    <button class="cb" data-action="num" data-val="2">2</button>
-    <button class="cb" data-action="num" data-val="3">3</button>
-    <button class="cb op" data-action="op" data-val="+">+</button>
-    <button class="cb span2" data-action="num" data-val="0">0</button>
-    <button class="cb" data-action="dot">.</button>
-    <button class="cb eq" data-action="equals">=</button>
-  </div>
-</aside>
 
 </div>
 
@@ -1051,92 +954,6 @@ function animateSol(n) {
 }
 
 startGame();
-
-// ─── Calculadora independiente ────────────────────────────────────────────────
-(function() {
-  let cExpr = '';   // expresión acumulada (para display pequeño)
-  let cCurrent = '0';  // número en pantalla
-  let cOp = null;
-  let cPrev = null;
-  let cJustEq = false;
-
-  const display = document.getElementById('calc-display');
-  const exprEl  = document.getElementById('calc-expr');
-
-  function cRender() {
-    display.textContent = cCurrent;
-    exprEl.textContent  = cExpr;
-  }
-
-  function cNum(v) {
-    if (cJustEq) { cCurrent = v; cExpr = ''; cJustEq = false; return; }
-    if (cCurrent === '0' && v !== '.') cCurrent = v;
-    else if (v === '.' && cCurrent.includes('.')) return;
-    else cCurrent += v;
-  }
-
-  function cSetOp(op) {
-    cJustEq = false;
-    if (cPrev !== null && cOp && !cJustEq) cEquals(false);
-    cPrev = parseFloat(cCurrent);
-    cOp = op;
-    cExpr = cCurrent + ' ' + op;
-    cCurrent = '0';
-  }
-
-  function cEquals(final = true) {
-    if (cPrev === null || cOp === null) return;
-    let b = parseFloat(cCurrent);
-    let result;
-    if (cOp === '+') result = cPrev + b;
-    else if (cOp === '−') result = cPrev - b;
-    else if (cOp === '×') result = cPrev * b;
-    else if (cOp === '÷') result = b !== 0 ? cPrev / b : NaN;
-    if (isNaN(result) || !isFinite(result)) {
-      cCurrent = 'Error'; cPrev = null; cOp = null; cExpr = ''; cJustEq = true; return;
-    }
-    // Round to avoid float artifacts
-    result = Math.round(result * 1e9) / 1e9;
-    if (final) {
-      cExpr = cExpr + ' ' + b + ' =';
-      cJustEq = true;
-    }
-    cCurrent = String(result);
-    cPrev = null; cOp = null;
-  }
-
-  document.getElementById('calc-grid').addEventListener('click', e => {
-    let btn = e.target.closest('.cb');
-    if (!btn) return;
-    let action = btn.dataset.action;
-    let val    = btn.dataset.val;
-
-    if (action === 'num')      { cNum(val); }
-    else if (action === 'op')  { cSetOp(val); }
-    else if (action === 'equals') { cEquals(true); }
-    else if (action === 'dot') { cNum('.'); }
-    else if (action === 'clear') { cCurrent='0'; cPrev=null; cOp=null; cExpr=''; cJustEq=false; }
-    else if (action === 'backspace') {
-      if (cJustEq) return;
-      cCurrent = cCurrent.length > 1 ? cCurrent.slice(0,-1) : '0';
-    }
-    cRender();
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.key >= '0' && e.key <= '9') { cNum(e.key); cRender(); }
-    else if (e.key === '.') { cNum('.'); cRender(); }
-    else if (e.key === '+') { cSetOp('+'); cRender(); }
-    else if (e.key === '-') { cSetOp('−'); cRender(); }
-    else if (e.key === '*') { cSetOp('×'); cRender(); }
-    else if (e.key === '/') { e.preventDefault(); cSetOp('÷'); cRender(); }
-    else if (e.key === 'Enter' || e.key === '=') { cEquals(true); cRender(); }
-    else if (e.key === 'Backspace') { if (!cJustEq) { cCurrent = cCurrent.length > 1 ? cCurrent.slice(0,-1) : '0'; } cRender(); }
-    else if (e.key === 'Escape' || e.key === 'Delete') { cCurrent='0'; cPrev=null; cOp=null; cExpr=''; cJustEq=false; cRender(); }
-  });
-
-  cRender();
-})();
 </script>
 </body>
 </html>
