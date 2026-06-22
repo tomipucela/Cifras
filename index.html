@@ -76,7 +76,7 @@
 
   .top-bar {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto;
     gap: 1rem;
     align-items: stretch;
   }
@@ -413,10 +413,70 @@
   .timer-bar.urgent { background: var(--red); }
 
   @media (max-width: 520px) {
-    .top-bar { grid-template-columns: 1fr 1fr; }
+    header {
+      padding: 1rem 1rem 0;
+    }
+    .logo { font-size: 1.25rem; }
+    .streak { font-size: 12px; }
+
+    main {
+      padding: 1rem 0.75rem 2rem;
+      gap: 1rem;
+    }
+
+    .top-bar { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
     .diff-card { display: none; }
-    .num-card { width: 58px; height: 58px; font-size: 1.1rem; }
-    .target-number { font-size: 2.2rem; }
+
+    .card { padding: 0.75rem 0.85rem; border-radius: 12px; }
+    .card-label { font-size: 10px; }
+
+    .target-number { font-size: 2.1rem; }
+    .timer-card { min-width: 0; }
+    .timer-value { font-size: 1.7rem; }
+
+    .card[style*="padding:1.25rem"] { padding: 0.85rem !important; }
+
+    .numbers-grid { gap: 8px; }
+    .num-card {
+      width: 22vw; height: 22vw;
+      min-width: 56px; min-height: 56px;
+      max-width: 76px; max-height: 76px;
+      font-size: 1.15rem;
+      border-radius: 10px;
+    }
+    .num-card .slot-tag { font-size: 8px; top: 3px; left: 5px; }
+
+    .ops-row { gap: 6px; }
+    .op-btn {
+      width: 23vw; max-width: 70px; height: 50px;
+      font-size: 1.3rem;
+    }
+
+    .builder {
+      padding: 0.85rem 0.6rem;
+      gap: 6px;
+      min-height: 64px;
+    }
+    .b-slot { min-width: 48px; height: 46px; font-size: 1.05rem; }
+    .b-slot.op-slot { min-width: 36px; font-size: 1.2rem; }
+    .result-badge { height: 46px; min-width: 60px; padding: 0 10px; font-size: 1.05rem; }
+    .result-badge .apply-label { font-size: 9px; }
+
+    .action-row { gap: 6px; flex-wrap: wrap; }
+    .action-btn { padding: 8px 12px; font-size: 12px; flex: 1 1 auto; justify-content: center; }
+
+    .modal { padding: 1.75rem 1.25rem; }
+    .modal-icon { font-size: 2.4rem; }
+    .modal h2 { font-size: 1.35rem; }
+    .modal p { font-size: 13px; }
+
+    #layout { padding: 0; }
+  }
+
+  @media (max-width: 380px) {
+    .num-card { font-size: 1rem; }
+    .op-btn { font-size: 1.15rem; }
+    .b-slot { min-width: 42px; font-size: 0.95rem; }
   }
 
   /* Layout */
@@ -447,7 +507,7 @@
 <div id="layout">
 <main>
   <div class="top-bar">
-    <div class="diff-card card">
+    <div class="diff-card card" style="display:none">
       <div class="card-label">Dificultad</div>
       <div class="diff-pill facil" id="diff-pill">
         <div class="diff-dot"></div>
@@ -601,7 +661,9 @@ function genPuzzle(diff) {
 
   do {
     nums = pickNums(diff);
-    target = minT + Math.floor(Math.random()*(maxT - minT + 1));
+    do {
+      target = minT + Math.floor(Math.random()*(maxT - minT + 1));
+    } while (target === 100);
     sol = solve(nums, target);
     tries++;
     // Accept if solvable and not too many steps for difficulty
@@ -614,7 +676,9 @@ function genPuzzle(diff) {
     tries = 0;
     do {
       nums = pickNums(diff);
-      target = minT + Math.floor(Math.random()*(maxT - minT + 1));
+      do {
+        target = minT + Math.floor(Math.random()*(maxT - minT + 1));
+      } while (target === 100);
       sol = solve(nums, target);
       tries++;
     } while (!sol && tries < 400);
@@ -911,10 +975,6 @@ function endGame(won) {
       <div class="modal-icon">${fast ? '⚡' : '🎯'}</div>
       <h2>${msg}</h2>
       <p>${sub}<br>Racha actual: <b>${streak}</b></p>
-      <div style="margin-bottom:1.25rem">
-        <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:8px;letter-spacing:0.05em">HISTORIAL DE DIFICULTAD</div>
-        <div class="diff-history">${histHtml}</div>
-      </div>
       <button class="next-btn ready" id="next-btn">Siguiente ronda →</button>`;
   } else {
     let steps = state.sol || [];
@@ -923,10 +983,6 @@ function endGame(won) {
       <h2>${timeLeft <= 0 ? 'Tiempo agotado' : 'Te has rendido'}</h2>
       <p>El objetivo era <b>${state.target}</b>. Aquí tienes una solución:</p>
       <div class="sol-container" id="sol-c">${steps.map((s,i)=>`<div class="sol-step" id="ss${i}">${s}</div>`).join('')}</div>
-      <div style="margin-bottom:1.25rem">
-        <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:8px;letter-spacing:0.05em">HISTORIAL DE DIFICULTAD</div>
-        <div class="diff-history">${histHtml}</div>
-      </div>
       <button class="next-btn" id="next-btn">Siguiente ronda →</button>`;
     animateSol(steps.length);
   }
